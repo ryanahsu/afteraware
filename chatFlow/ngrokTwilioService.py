@@ -18,10 +18,10 @@ AIRTABLE_TABLE_NAME = 'teams'
 
 # Twilio info
 account_sid = 'AC279b93ebe0524bc08ab1791d3d29da4b'
-auth_token = 'bfab954301b0b78005b61d1210d661ac'
+auth_token = 'b6834fe26655e01e8393a9a56e98a574'
 
 # OpenAI info
-openai.api_key = "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"
+openai.api_key = "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"
 
 # Route for handling incoming messages
 
