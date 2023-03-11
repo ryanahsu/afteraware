@@ -20,7 +20,6 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         }
 
-
         label {
             display: block;
             font-weight: bold;
@@ -76,6 +75,41 @@
                 font-size: 18px;
             }
         }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            text-align: center;
+        }
+        .modal-close {
+            display: block;
+            margin-top: 20px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: #fff;
+            cursor: pointer;
+        }
+        .modal-close:hover {
+            background-color: #3e8e41;
+        }
     </style>
     <script>
         function validateForm() {
@@ -87,7 +121,7 @@
             }
         }
 
-       function addTimeField() {
+        function addTimeField() {
             var timeContainer = document.getElementById("time-container");
             var newTimeField = document.createElement("input");
             newTimeField.type = "time";
@@ -95,9 +129,26 @@
             newTimeField.className = "time-field";
             timeContainer.appendChild(newTimeField);
         }
+
+        function showModal() {
+            var modal = document.getElementById("modal");
+            modal.style.display = "block";
+        }
+
+        function hideModal() {
+            var modal = document.getElementById("modal");
+            modal.style.display = "none";
+        }
     </script>
 </head>
 <body>
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h2>Disclaimer</h2>
+            <p>Please note that the information you enter into this form is not secure and is not intended to be used for any medical diagnosis or treatment. By using this form, you acknowledge and agree to these terms.</p>
+            <button type="button" onclick="hideModal()" class="modal-close">I understand</button>
+        </div>
+    </div>
     <form name="myForm" method="POST" action="/submit" onsubmit="return validateForm()">
         <label for="input-phone">Phone:</label>
         <input type="text" id="input-phone" name="input-phone" placeholder="Enter your phone number"><br>
@@ -114,5 +165,10 @@
 
         <input type="submit" value="Submit">
     </form>
+
+    <script>
+        showModal();
+    </script>
 </body>
 </html>
+
