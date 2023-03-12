@@ -6,8 +6,8 @@ AIRTABLE_TABLE_NAME = 'table 1'
 
 
 airtable_client = airtable.Airtable(
-    AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME, AIRTABLE_API_KEY)
+    AIRTABLE_BASE_ID, 'Signups', AIRTABLE_API_KEY)
 
 airtable_client.insert({
-    'Phone Number': 'Field Value'
+    'Phone Number': '+19164170513'
 })

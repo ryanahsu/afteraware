@@ -1,19 +1,22 @@
+from datetime import datetime
 import airtable
 import requests
-from flask import Flask, render_template, request
+from flask import Flask, jsonify, render_template, request
 from twilio.rest import Client
 
 app = Flask(__name__)
 
 AIRTABLE_API_KEY = 'keyiBU3kbqq2MMpOC'
 AIRTABLE_BASE_ID = 'appLDM3F8B89UY71p'
-AIRTABLE_TABLE_NAME = 'table 1'
-airtable_client = airtable.Airtable(AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME, AIRTABLE_API_KEY)
+airtable_signups = airtable.Airtable(
+    AIRTABLE_BASE_ID, 'Signups', AIRTABLE_API_KEY)
+airtable_conversations = airtable.Airtable(
+    AIRTABLE_BASE_ID, 'Conversations', AIRTABLE_API_KEY)
 
 account_sid = 'AC279b93ebe0524bc08ab1791d3d29da4b'
 auth_token = 'b6834fe26655e01e8393a9a56e98a574'
 
-client = Client(account_sid, auth_token)
+twilio = Client(account_sid, auth_token)
 
 
 @app.route("/")
@@ -34,13 +37,13 @@ def submit():
     times = list(set(times))
     times_string = ', '.join(times)
 
-    records = airtable_client.search('Phone Number', phone)
+    records = airtable_signups.search('Phone Number', phone)
     if records:
         # A record with the same phone number already exists
         # Return an error message to the user
         return "Phone number already exists"
     else:
-        airtable_client.insert({
+        airtable_signups.insert({
             'Phone Number': phone,
             'Clinic': clinic,
             'Condition': text,
@@ -49,12 +52,12 @@ def submit():
         })
         # Send a POST request to the success URL
 
-        message = client.messages.create(
+        message = twilio.messages.create(
             to=phone,
             from_='+14093163562',
             body='Welcome to AfterAware!'
         )
-            # The request to the success URL was successful
+        # The request to the success URL was successful
         return """
                 <html>
                 <head>
@@ -95,11 +98,65 @@ def submit():
                 </html>
             """
 
-
-
     print(message.sid)
 
 
+@app.route("/checkin", methods=["GET"])
+# TODO: eventually add CORS/similar checking to protect endpoints
+def checkin():
+    # Get patient phone number to text
+    patient_number = request.values.get('number', None)
+
+    # Send text
+    message = twilio.messages.create(
+        to=patient_number,
+        from_='+14093163562',
+        body='Hi! This is AfterAware checking in on your health. How are you today?'
+    )
+
+    # Print the message SID to confirm that the message was sent
+    print('Message SID:', message.sid)
+
+    # Indicate success
+    return jsonify("success"), 200
+
+
+@app.route("/reply", methods=["POST"])
+def reply():
+    # Get patient phone number to text
+    patient_number = request.values.get('number', None)
+
+    # Get the current time
+    now = datetime.now()
+    formatted_date_time = now.strftime("%Y-%m-%d %H:%M:%S")
+
+    if isinstance(airtable_conversations, airtable.Airtable):
+        print('Airtable object is valid')
+    else:
+        print('Airtable object is not valid')
+
+    '''
+    airtable_conversations.insert({
+        'Time': formatted_date_time,
+        'Sender': '+14093163562',
+        'Receiver': patient_number,
+        'Text': 'HELLOOOOOO'})
+    '''
+
+
+    '''
+    openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "Who won the world series in 2020?"},
+            {"role": "assistant",
+                "content": "The Los Angeles Dodgers won the World Series in 2020."},
+            {"role": "user", "content": "Where was it played?"}
+        ]
+    )
+    '''
+
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=5001)
