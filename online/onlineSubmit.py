@@ -171,9 +171,10 @@ def reply():
     for message in sorted_convo:
         if message["fields"]["Sender"] == patient_number:
             messages.append(
-            {"role": "patient", "content": message["fields"]["Text"]})
+                {"role": "patient", "content": message["fields"]["Text"]})
         else:
-            {"role": "doctor", "content": message["fields"]["Text"]})
+            messages.append(
+                {"role": "doctor", "content": message["fields"]["Text"]})
 
     # Generate next doctor question
     question = openai.ChatCompletion.create(
@@ -188,7 +189,7 @@ def reply():
         from_=chatbot_number,
         body=response_text
     )
-    
+
     # Get the current time
     today = date.today().isoformat()
     current_time = datetime.now().strftime("%H:%M:%S")
@@ -200,7 +201,7 @@ def reply():
         'Sender': chatbot_number,
         'Receiver': patient_number,
         'Text': response_text})
-    
+
     return jsonify("success"), 200
 
 
