@@ -7,6 +7,9 @@ from twilio.rest import Client
 import openai
 import json
 
+
+
+
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/Users/aryanmahindra/Downloads/innate-summit-378204-849ac63c3e24.json'
 
 app = Flask(__name__)

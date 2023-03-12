@@ -33,6 +33,5 @@ def submit():
 
     return "Data received successfully!"
 
-
 if __name__ == "__main__":
-    app.run(debug=True, host='signup.afteraware.com')
+    app.run(debug=True, host='0.0.0.0')

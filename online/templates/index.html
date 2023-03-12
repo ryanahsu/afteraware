@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Flask Form</title>
+<title>Afteraware Signup</title>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         /* Base styles */
@@ -25,7 +26,7 @@
             font-weight: bold;
             margin-bottom: 5px;
         }
-        input[type="text"], textarea, input[type="time"] {
+        input[type="text"], textarea, input[type="time"], select {
             display: block;
             width: 100%;
             padding: 10px;
@@ -53,10 +54,13 @@
             resize: none;
         }
         .time-field {
-            margin-bottom: 20px;
-            margin-top: 10px;
+            margin-bottom: 10px;
         }
         #add-time-button {
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        h3 {
             margin-top: 20px;
         }
 
@@ -65,7 +69,7 @@
             form {
                 padding: 10px;
             }
-            input[type="text"], textarea, input[type="time"] {
+            input[type="text"], textarea, input[type="time"], select {
                 font-size: 16px;
             }
             input[type="submit"] {
@@ -114,32 +118,37 @@
     <script>
         function validateForm() {
             var text = document.forms["myForm"]["input-text"].value;
-            var regex = /^[a-zA-Z\s]+$/;
-            if (!regex.test(text)) {
-                alert("Please enter a valid diagnosis.");
-                return false;
-            }
-        }
+var regex = /^[a-zA-Z\s]+$/;
+if (!regex.test(text)) {
+alert("Please enter a valid diagnosis.");
+return false;
+}
+var token = document.forms["myForm"]["input-token"].value;
+if (token !== "6bb65257fcab4e2975cd96b0f7fc4b53d97c10b6") {
+alert("Please enter the correct confirmation token.");
+return false;
+}
+return true;
+}
+    function addTimeField() {
+        var timeContainer = document.getElementById("time-container");
+        var newTimeField = document.createElement("input");
+        newTimeField.type = "time";
+        newTimeField.name = "input-time[]";
+        newTimeField.className = "time-field";
+        timeContainer.appendChild(newTimeField);
+    }
 
-        function addTimeField() {
-            var timeContainer = document.getElementById("time-container");
-            var newTimeField = document.createElement("input");
-            newTimeField.type = "time";
-            newTimeField.name = "input-time[]";
-            newTimeField.className = "time-field";
-            timeContainer.appendChild(newTimeField);
-        }
+    function showModal() {
+        var modal = document.getElementById("modal");
+        modal.style.display = "block";
+    }
 
-        function showModal() {
-            var modal = document.getElementById("modal");
-            modal.style.display = "block";
-        }
-
-        function hideModal() {
-            var modal = document.getElementById("modal");
-            modal.style.display = "none";
-        }
-    </script>
+    function hideModal() {
+        var modal = document.getElementById("modal");
+        modal.style.display = "none";
+    }
+</script>
 </head>
 <body>
     <div id="modal" class="modal">
@@ -152,23 +161,29 @@
     <form name="myForm" method="POST" action="/submit" onsubmit="return validateForm()">
         <label for="input-phone">Phone:</label>
         <input type="text" id="input-phone" name="input-phone" placeholder="Enter your phone number"><br>
+        <label for="input-clinics">Clinic:</label>
+        <select id="input-clinics" name="input-clinics">
+            <option value="clinic">Choose clinic</option>
+            <option value="clinic1">RET Physical Therapy</option>
+            <option value="clinic2">LC Chiropractic</option>
+        </select>
         <label for="input-text">Enter your diagnosis:</label>
         <textarea id="input-text" name="input-text" placeholder="'Knee injury, shoulder injury, etc'"></textarea><br>
         <label for="input-reminder">Remind me to:</label>
         <input type="text" id="input-reminder" name="input-reminder" placeholder="Enter what you need to be reminded of">
         <div id="time-container">
+            <h3>Reminder times:</h3>
             <label for="input-time">at:</label>
-            <input type="time" id="input-time" name="input-time[]" class="time-field"><br>
+            <input type="time" id="input-time" name="input-time[]" class="time-field" style="margin-right: 5px">
         </div>
-
         <button type="button" onclick="addTimeField()" id="add-time-button">Add Time</button>
-
+        <label for="input-token">Confirmation Token:</label>
+        <input type="text" id="input-token" name="input-token" placeholder="Enter the confirmation token">
         <input type="submit" value="Submit">
     </form>
-
-    <script>
-        showModal();
-    </script>
+<script>
+    showModal();
+</script>
 </body>
 </html>
 
