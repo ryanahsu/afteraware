@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import date, datetime
 import airtable
 import requests
 from flask import Flask, jsonify, render_template, request
 from twilio.rest import Client
+import openai
 
 app = Flask(__name__)
 
@@ -37,14 +38,14 @@ def submit():
     times = list(set(times))
     times_string = ', '.join(times)
 
-    records = airtable_signups.search('Phone Number', phone)
+    records = airtable_signups.search('Patient Number', phone)
     if records:
         # A record with the same phone number already exists
         # Return an error message to the user
         return "Phone number already exists"
     else:
         airtable_signups.insert({
-            'Phone Number': phone,
+            'Patient Number': phone,
             'Clinic': clinic,
             'Condition': text,
             'Reminder': reminder,
@@ -101,7 +102,7 @@ def submit():
     print(message.sid)
 
 
-@app.route("/checkin", methods=["GET"])
+@app.route("/checkin", methods=["POST"])
 # TODO: eventually add CORS/similar checking to protect endpoints
 def checkin():
     # Get patient phone number to text
@@ -123,39 +124,84 @@ def checkin():
 
 @app.route("/reply", methods=["POST"])
 def reply():
-    # Get patient phone number to text
-    patient_number = request.values.get('number', None)
+    # Get patient and chatbot message info
+    patient_number = "+" + request.values.get('patient_number', None)
+    chatbot_number = "+" + request.values.get("chatbot_number", None)
+    patient_message = request.values.get("message", None)
+
+    if patient_number == None or chatbot_number == None or patient_message == None:
+        return jsonify({'error': 'Required message information missing'}), 400
+
+    # Get patient condition
+    patient_info = airtable_signups.search('Patient Number', patient_number)
+    if patient_info:
+        condition = patient_info[0]['fields']['Condition']
+    else:
+        return jsonify({'error': 'Patient entry not found'}), 400
 
     # Get the current time
-    now = datetime.now()
-    formatted_date_time = now.strftime("%Y-%m-%d %H:%M:%S")
+    today = date.today().isoformat()
+    current_time = datetime.now().strftime("%H:%M:%S")
 
-    if isinstance(airtable_conversations, airtable.Airtable):
-        print('Airtable object is valid')
-    else:
-        print('Airtable object is not valid')
-
-    '''
+    # Insert message record into airtable
     airtable_conversations.insert({
-        'Time': formatted_date_time,
-        'Sender': '+14093163562',
-        'Receiver': patient_number,
-        'Text': 'HELLOOOOOO'})
-    '''
+        'Date': today,
+        'Time': current_time,
+        'Sender': patient_number,
+        'Receiver': chatbot_number,
+        'Text': patient_message})
 
+    # Define the search formula
+    query = "AND(Date='{0}', OR(Sender='{1}', Receiver='{2}')".format(
+        today, patient_number, chatbot_number)
 
-    '''
-    openai.ChatCompletion.create(
+    # Search for records that match the formula
+    conversation = airtable_conversations.search(formula=query)
+
+    # TODO: add length of conversation checking
+
+    # Sort the records based on the Time field
+    sorted_convo = sorted(conversation, key=lambda x: datetime.strptime(
+        x['fields']['Time'], '%H:%M:%S'))
+
+    # Build text history for the day
+    messages = list()
+    messages.append(
+        {"role": "system", "content": "You are a doctor checking in post-operation on a patient with condition {0}".format(condition)})
+    for message in sorted_convo:
+        if message["fields"]["Sender"] == patient_number:
+            messages.append(
+            {"role": "patient", "content": message["fields"]["Text"]})
+        else:
+            {"role": "doctor", "content": message["fields"]["Text"]})
+
+    # Generate next doctor question
+    question = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": "Who won the world series in 2020?"},
-            {"role": "assistant",
-                "content": "The Los Angeles Dodgers won the World Series in 2020."},
-            {"role": "user", "content": "Where was it played?"}
-        ]
+        messages=messages
     )
-    '''
+    response_text = question.choices[0].text
+
+    # Send text
+    message = twilio.messages.create(
+        to=patient_number,
+        from_=chatbot_number,
+        body=response_text
+    )
+    
+    # Get the current time
+    today = date.today().isoformat()
+    current_time = datetime.now().strftime("%H:%M:%S")
+
+    # Add outgoing text to airtable
+    airtable_conversations.insert({
+        'Date': today,
+        'Time': current_time,
+        'Sender': chatbot_number,
+        'Receiver': patient_number,
+        'Text': response_text})
+    
+    return jsonify("success"), 200
 
 
 if __name__ == "__main__":
