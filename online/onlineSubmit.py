@@ -49,7 +49,7 @@ def submit():
             'Clinic': clinic,
             'Condition': text,
             'Reminder': reminder,
-            'Times': times_string
+            'Times': times_string,
         })
         # Send a POST request to the success URL
 
@@ -227,6 +227,14 @@ def reply():
         'Text': response_text})
 
     return jsonify("success"), 200
+    
+    
+ 
+ 
+
+
+twilio==6.64.0
+/home/aryanmahindra/mysite
 '''
 
 if __name__ == 'main':
