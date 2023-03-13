@@ -55,7 +55,7 @@ def submit():
 
         message = twilio.messages.create(
             to=phone,
-            from_='+14093163562',
+            from_='+15074185220',
             body='Welcome to AfterAware!'
         )
         # The request to the success URL was successful
@@ -106,14 +106,19 @@ def submit():
 # TODO: eventually add CORS/similar checking to protect endpoints
 def checkin():
     # Get patient phone number to text
-    patient_number = request.values.get('number', None)
 
+    patient_number = "+" + request.values.get('patient_number', None)
+    print(patient_number)
     # Send text
     message = twilio.messages.create(
         to=patient_number,
-        from_='+14093163562',
+        from_='+15074185220',
         body='Hi! This is AfterAware checking in on your health. How are you today?'
     )
+
+    '''
+    
+    '''
 
     # Print the message SID to confirm that the message was sent
     print('Message SID:', message.sid)
@@ -122,8 +127,27 @@ def checkin():
     return jsonify("success"), 200
 
 
+
+
+
+
 @app.route("/reply", methods=["POST"])
 def reply():
+    # Get the message body and sender's phone number
+    message_body = request.values.get('Body', None)
+    sender_number = request.values.get('From', None)
+    print("server hit!")
+    print(message_body)
+    print(sender_number)
+    return jsonify("success")
+
+
+'''
+@app.route("/reply", methods=["POST"])
+def reply():
+
+    print(request)
+    
     # Get patient and chatbot message info
     patient_number = "+" + request.values.get('patient_number', None)
     chatbot_number = "+" + request.values.get("chatbot_number", None)
@@ -203,7 +227,19 @@ def reply():
         'Text': response_text})
 
     return jsonify("success"), 200
+'''
 
+if __name__ == 'main':
+    # Start ngrok
+    ngrok_url = 'http://localhost:4040/api/tunnels'
+    response = requests.get(ngrok_url)
+    data = response.json()
+    ngrok_tunnel = data['tunnels'][0]['public_url']
+    print('ngrok tunnel:', ngrok_tunnel)
 
-if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    # Set up the Twilio webhook URL
+    twilio_url = ngrok_tunnel + '/sms'
+    print('Twilio URL:', twilio_url)
+
+    # Run the Flask app
+    app.run(debug=True)

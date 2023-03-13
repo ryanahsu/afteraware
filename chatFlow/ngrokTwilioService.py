@@ -118,7 +118,7 @@ def handle_incoming_sms():
         client = Client(account_sid, auth_token)
         message = client.messages.create(
             body=response.choices[0].text.strip(),
-            from_='+14093163562',  # Your Twilio phone number here
+            from_='+15074185220',  # Your Twilio phone number here
             to=sender_number
         )
 
@@ -202,7 +202,7 @@ def start_conversation():
 
     message = client.messages.create(
         to=patient_number,  # Replace with the phone number you want to send a message to
-        from_='+14093163562',  # Replace with your Twilio phone number
+        from_='+15074185220',  # Replace with your Twilio phone number
         body='Thanks for signing up to AfterAware! How are you doing today?')
 
     # Print the message SID to confirm that the message was sent
