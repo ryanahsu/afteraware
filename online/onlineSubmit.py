@@ -198,7 +198,9 @@ def reply():
     # Generate next doctor question
     question = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        messages=messages
+        messages=messages,
+        max_tokens=50,
+        stop="."
     )
     response_text = question.choices[0].message['content']
 
