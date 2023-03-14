@@ -1,4 +1,5 @@
 import os
+import time
 from reminder_json_helper import read_reminder_json, write_reminder_json
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, date
@@ -13,13 +14,11 @@ twilio_client = Client(http_client=proxy_client)
 
 
 def find_reminders_due():
-    reminders = read_reminder_json()
     reminders_due = [
-        reminder for reminder in reminders
-        if reminder['due_date'] == str(date.today())
+        reminder for reminder in read_reminder_json()
+        if datetime.strptime(reminder['due_date'], '%Y-%m-%d') <= datetime.now()
     ]
-    if len(reminders_due) > 0:
-        send_sms_reminder(reminders_due)
+    return reminders_due
 
 
 def send_sms_reminder(reminders):
@@ -38,12 +37,18 @@ def update_due_date(reminder):
     data = {}
     reminders.remove(reminder)
     new_due_date = datetime.strptime(
-        reminder['due_date'], '%Y-%m-%d').date() + relativedelta(months=1)
-    reminder['due_date'] = str(new_due_date)
+        reminder['due_date'], '%Y-%m-%d') + relativedelta(months=1)
+
+    reminder['due_date'] = str(new_due_date.date())
+    reminder.pop('due_time', None)  # Remove 'due_time' field if it exists
     reminders.append(reminder)
     data['reminders'] = reminders
     write_reminder_json(data)
 
 
 if __name__ == '__main__':
-    find_reminders_due()
+    while True:
+        reminders_due = find_reminders_due()
+        if reminders_due:
+            send_sms_reminder(reminders_due)
+        time.sleep(60)  # Check every hour

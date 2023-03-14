@@ -11,21 +11,23 @@ def get_reminders():
     reminders = read_reminder_json()
     return jsonify({'reminders': reminders})
 
-
 @app.route('/api/reminders', methods=['POST'])
 def create_reminder():
     req_data = request.get_json()
 
     if not all(item in req_data
-               for item in ("phone_number", "message", "due_date")):
+               for item in ("phone_number", "message", "due_date", "due_time")):
         abort(400)
+
+    due_datetime_str = f"{req_data['due_date']} {req_data['due_time']}"
+    due_datetime = datetime.strptime(due_datetime_str, '%Y-%m-%d %H:%M:%S')
 
     reminder = {
         'id': uuid.uuid4().hex,
         'phone_number': req_data['phone_number'],
         'message': req_data['message'],
         'interval': 'monthly',
-        'due_date': req_data['due_date']
+        'due_date': due_datetime.strftime('%Y-%m-%d %H:%M:%S')
     }
 
     create_reminder_json(reminder)

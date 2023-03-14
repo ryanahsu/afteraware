@@ -1,0 +1,11 @@
+{
+    "reminders": [
+        {
+            "id": "1",
+            "phone_number": "+14257492240",
+            "message": "Buy milk",
+            "interval": "monthly",
+            "due_date": "2022-06-14"
+        }
+    ]
+}
