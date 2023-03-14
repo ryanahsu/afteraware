@@ -17,6 +17,9 @@ airtable_conversations = airtable.Airtable(
 account_sid = 'AC279b93ebe0524bc08ab1791d3d29da4b'
 auth_token = 'b6834fe26655e01e8393a9a56e98a574'
 
+
+openai.api_key = "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"
+
 twilio = Client(account_sid, auth_token)
 
 
@@ -133,25 +136,12 @@ def checkin():
 
 @app.route("/reply", methods=["POST"])
 def reply():
-    # Get the message body and sender's phone number
-    message_body = request.values.get('Body', None)
-    sender_number = request.values.get('From', None)
-    print("server hit!")
-    print(message_body)
-    print(sender_number)
-    return jsonify("success")
 
 
-'''
-@app.route("/reply", methods=["POST"])
-def reply():
-
-    print(request)
-    
     # Get patient and chatbot message info
-    patient_number = "+" + request.values.get('patient_number', None)
-    chatbot_number = "+" + request.values.get("chatbot_number", None)
-    patient_message = request.values.get("message", None)
+    patient_number = request.values.get('From', None)
+    chatbot_number = request.values.get("To", None)
+    patient_message = request.values.get("Body", None)
 
     if patient_number == None or chatbot_number == None or patient_message == None:
         return jsonify({'error': 'Required message information missing'}), 400
@@ -174,13 +164,14 @@ def reply():
         'Sender': patient_number,
         'Receiver': chatbot_number,
         'Text': patient_message})
-
     # Define the search formula
     query = "AND(Date='{0}', OR(Sender='{1}', Receiver='{2}')".format(
         today, patient_number, chatbot_number)
 
     # Search for records that match the formula
-    conversation = airtable_conversations.search(formula=query)
+    #conversation = airtable_conversations.search(formula=query)
+
+    conversation = airtable_conversations.search('Date', today, formula=query)
 
     # TODO: add length of conversation checking
 
@@ -188,24 +179,30 @@ def reply():
     sorted_convo = sorted(conversation, key=lambda x: datetime.strptime(
         x['fields']['Time'], '%H:%M:%S'))
 
+    print(sorted_convo)
+
     # Build text history for the day
     messages = list()
     messages.append(
-        {"role": "system", "content": "You are a doctor checking in post-operation on a patient with condition {0}".format(condition)})
+        {"role": "system",
+         "content": "You are a doctor checking in post-operation on a patient with condition {0}".format(condition)})
     for message in sorted_convo:
         if message["fields"]["Sender"] == patient_number:
             messages.append(
-                {"role": "patient", "content": message["fields"]["Text"]})
+                {"role": "user", "content": message["fields"]["Text"]})
         else:
             messages.append(
-                {"role": "doctor", "content": message["fields"]["Text"]})
+                {"role": "assistant", "content": message["fields"]["Text"]})
 
+    print(messages)
     # Generate next doctor question
     question = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=messages
     )
-    response_text = question.choices[0].text
+    response_text = question.choices[0].message['content']
+
+    print(response_text)
 
     # Send text
     message = twilio.messages.create(
@@ -227,15 +224,9 @@ def reply():
         'Text': response_text})
 
     return jsonify("success"), 200
-    
-    
- 
- 
 
 
-twilio==6.64.0
-/home/aryanmahindra/mysite
-'''
+
 
 if __name__ == 'main':
     # Start ngrok

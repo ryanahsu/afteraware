@@ -16,7 +16,7 @@ url = "https://1e1d-2601-602-8b81-4810-5467-8751-5261-d970.ngrok.io/checkin"
 
 
 # Set the time to send the request (in 24-hour format)
-send_time = "14:44"
+send_time = "18:25"
 
 while True:
 
