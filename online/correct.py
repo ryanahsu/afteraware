@@ -11,14 +11,11 @@ AIRTABLE_API_KEY = 'keyiBU3kbqq2MMpOC'
 AIRTABLE_BASE_ID = 'appLDM3F8B89UY71p'
 airtable_signups = airtable.Airtable(
     AIRTABLE_BASE_ID, 'Signups', AIRTABLE_API_KEY)
-airtable_reminders = airtable.Airtable(
-    AIRTABLE_BASE_ID, 'Reminders', AIRTABLE_API_KEY)
 airtable_conversations = airtable.Airtable(
     AIRTABLE_BASE_ID, 'Conversations', AIRTABLE_API_KEY)
 
 account_sid = 'AC279b93ebe0524bc08ab1791d3d29da4b'
 auth_token = 'b6834fe26655e01e8393a9a56e98a574'
-
 
 openai.api_key = "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"
 
@@ -41,36 +38,6 @@ def submit():
 
     # Remove duplicate times
     times = list(set(times))
-    times = [time + ':00' for time in times]
-
-    print(times)
-    print(phone)
-
-
-
-    for time in times:
-        # Define the search query
-        search_query = f"{{Time}} = '{time}'"
-
-        # Search for the record in the Airtable
-        result = airtable_reminders.search("Time", time)
-
-        # If the record exists, append the phone number to the PhoneNumbers field
-        if result:
-            record_id = result[0]['id']
-            phone_numbers = result[0]['fields']['PhoneNumbers']
-            if not isinstance(phone_numbers, list):
-                phone_numbers = [phone_numbers]
-            phone_numbers.append(phone)
-            my_string = "', '".join(phone_numbers)
-            airtable_reminders.update(record_id, {'PhoneNumbers': my_string})
-
-        # If the record does not exist, create a new record with the time and phone number
-        else:
-            airtable_reminders.insert({'Time': time, 'PhoneNumbers': phone})
-
-
-
     times_string = ', '.join(times)
 
     records = airtable_signups.search('Patient Number', phone)
@@ -152,7 +119,7 @@ def checkin():
     )
 
     '''
-    
+
     '''
 
     # Print the message SID to confirm that the message was sent
@@ -162,14 +129,8 @@ def checkin():
     return jsonify("success"), 200
 
 
-
-
-
-
 @app.route("/reply", methods=["POST"])
 def reply():
-
-
     # Get patient and chatbot message info
     patient_number = request.values.get('From', None)
     chatbot_number = request.values.get("To", None)
@@ -201,7 +162,7 @@ def reply():
         today, patient_number, chatbot_number)
 
     # Search for records that match the formula
-    #conversation = airtable_conversations.search(formula=query)
+    # conversation = airtable_conversations.search(formula=query)
 
     conversation = airtable_conversations.search('Date', today, formula=query)
 
@@ -217,7 +178,7 @@ def reply():
     messages = list()
     messages.append(
         {"role": "system",
-         "content": "Pretend your a nurse that is asking questions before a routine checkup. Your goal is to acquire as much information as possible about how the patient is feeling about{0}. The patients condition is {0}. No medical advice. Only asking good questions. No explaining why. Only ask questions".format(condition)})
+         "content": "You are a doctor checking in post-operation on a patient with condition {0}".format(condition)})
     for message in sorted_convo:
         if message["fields"]["Sender"] == patient_number:
             messages.append(
@@ -260,6 +221,17 @@ def reply():
     return jsonify("success"), 200
 
 
+if __name__ == 'main':
+    # Start ngrok
+    ngrok_url = 'http://localhost:4040/api/tunnels'
+    response = requests.get(ngrok_url)
+    data = response.json()
+    ngrok_tunnel = data['tunnels'][0]['public_url']
+    print('ngrok tunnel:', ngrok_tunnel)
 
+    # Set up the Twilio webhook URL
+    twilio_url = ngrok_tunnel + '/sms'
+    print('Twilio URL:', twilio_url)
 
-
+    # Run the Flask app
+    app.run(debug=True)

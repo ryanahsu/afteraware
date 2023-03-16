@@ -8,7 +8,7 @@ base_id = 'appLDM3F8B89UY71p'
 table_name = 'Signups'
 airtable_client = airtable.Airtable(base_id, table_name, api_key)
 
-url = "https://cruel-plums-bake-35-230-4-94.loca.lt/checkin"
+url = "https://genial-theory-380605.uc.r.appspot.com/checkin"
 
 app = Flask(__name__)
 
