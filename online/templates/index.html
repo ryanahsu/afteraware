@@ -4,10 +4,11 @@
 <title>Afteraware Signup</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Encode+Sans+Condensed:wght@300&family=Space+Grotesk:wght@300&display=swap" rel="stylesheet">
     <style>
         /* Base styles */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             background-color: #f2f2f2;
             margin: 0;
             padding: 0;
@@ -25,6 +26,9 @@
             display: block;
             font-weight: bold;
             margin-bottom: 5px;
+        }
+        input {
+            font-family: 'Space Grotesk', sans-serif;
         }
         input[type="text"], textarea, input[type="time"], select {
             display: block;
@@ -57,11 +61,18 @@
             margin-bottom: 10px;
         }
         #add-time-button {
+            font-family: 'Space Grotesk', sans-serif;  
             margin-top: 20px;
             margin-bottom: 10px;
         }
         h3 {
             margin-top: 20px;
+        }
+        textarea {
+            font-family: 'Space Grotesk', sans-serif;   
+        }
+        select {
+            font-family: 'Space Grotesk', sans-serif;
         }
 
         /* Styles for small screens */
@@ -154,8 +165,8 @@ return true;
     <div id="modal" class="modal">
         <div class="modal-content">
             <h2>Disclaimer</h2>
-            <p>Please note that the information you enter into this form is not secure and is not intended to be used for any medical diagnosis or treatment. By using this form, you acknowledge and agree to these terms.</p>
-            <button type="button" onclick="hideModal()" class="modal-close">I understand</button>
+            <p>Please note that the information entered into this pilot form is not secure. Do not enter confidential medical information. The chats received from this service are not intended to be used for any medical diagnosis or treatment. By using this form, you acknowledge and agree to these terms.</p>
+            <button type="button" onclick="hideModal()" class="modal-close">I agree</button>
         </div>
     </div>
     <form name="myForm" method="POST" action="/submit" onsubmit="return validateForm()">
@@ -168,7 +179,7 @@ return true;
             <option value="clinic2">LC Chiropractic</option>
         </select>
         <label for="input-text">Enter your diagnosis:</label>
-        <textarea id="input-text" name="input-text" placeholder="'Knee injury, shoulder injury, etc'"></textarea><br>
+        <textarea id="input-text" name="input-text" placeholder="'Sprained ankle, torn ACL, etc'"></textarea><br>
         <label for="input-reminder">Remind me to:</label>
         <input type="text" id="input-reminder" name="input-reminder" placeholder="Enter what you need to be reminded of">
         <div id="time-container">
