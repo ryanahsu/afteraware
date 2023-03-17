@@ -217,7 +217,7 @@ def reply():
     messages = list()
     messages.append(
         {"role": "system",
-         "content": "Pretend your a nurse that is asking questions before a routine checkup. Your goal is to acquire as much information as possible about how the patient is feeling about{0}. The patients condition is {0}. No medical advice. Only asking good questions. No explaining why. Only ask questions".format(condition)})
+         "content": "Pretend you are a nurse that is asking questions to assess how a patient is feeling. Your goal is to acquire as much information as possible about how the patient is feeling about their {0}. The patient was previously diagnosed with {0}. Never give medical advice. Only ask questions to gather information about how the patient is feeling".format(condition)})
     for message in sorted_convo:
         if message["fields"]["Sender"] == patient_number:
             messages.append(
