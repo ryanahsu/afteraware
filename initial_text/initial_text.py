@@ -3,12 +3,13 @@ import airtable
 from flask import Flask, request, render_template
 
 # Set up the Airtable API client
-api_key = 'keyiBU3kbqq2MMpOC'
-base_id = 'appLDM3F8B89UY71p'
-table_name = 'Signups'
-airtable_client = airtable.Airtable(base_id, table_name, api_key)
+AIRTABLE_API_KEY = 'keyiBU3kbqq2MMpOC'
+AIRTABLE_BASE_ID = 'appLDM3F8B89UY71p'
+airtable_signups = airtable.Airtable(
+    AIRTABLE_BASE_ID, 'Signups', AIRTABLE_API_KEY)
+airtable_client = airtable.Airtable(AIRTABLE_BASE_ID, 'Signups', AIRTABLE_API_KEY)
 
-url = "https://genial-theory-380605.uc.r.appspot.com/checkin"
+url = "https://remindersdeployeduspst.uk.r.appspot.com/checkin"
 
 app = Flask(__name__)
 

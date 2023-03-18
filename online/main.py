@@ -16,9 +16,12 @@ airtable_reminders = airtable.Airtable(
 airtable_conversations = airtable.Airtable(
     AIRTABLE_BASE_ID, 'Conversations', AIRTABLE_API_KEY)
 
+url = "https://remindersdeployeduspst.uk.r.appspot.com/checkin"
+
 account_sid = 'AC279b93ebe0524bc08ab1791d3d29da4b'
 auth_token = 'b6834fe26655e01e8393a9a56e98a574'
 
+airtable_client = airtable.Airtable(AIRTABLE_BASE_ID, 'Signups', AIRTABLE_API_KEY)
 
 openai.api_key = "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"
 
@@ -46,8 +49,6 @@ def submit():
     print(times)
     print(phone)
 
-
-
     for time in times:
         # Define the search query
         search_query = f"{{Time}} = '{time}'"
@@ -69,8 +70,6 @@ def submit():
         else:
             airtable_reminders.insert({'Time': time, 'PhoneNumbers': phone})
 
-
-
     times_string = ', '.join(times)
 
     records = airtable_signups.search('Patient Number', phone)
@@ -91,8 +90,9 @@ def submit():
         message = twilio.messages.create(
             to=phone,
             from_='+15074185220',
-            body='Welcome to AfterAware!'
+            body="Welcome to AfterAware! How has your condition of {} changed from your last visit to the clinic?".format(text.lower())
         )
+        #send_request()
         # The request to the success URL was successful
         return """
                 <html>
@@ -137,6 +137,19 @@ def submit():
     print(message.sid)
 
 
+def send_request():
+    patient_numbers = []
+    records = airtable_client.get_all()
+    for record in records:
+        patient_numbers.append(record['fields']['Patient Number'])
+
+    patient_numbers = list(set(patient_numbers))
+
+    for patient_number in patient_numbers:
+        params = {"patient_number": patient_number}
+        response = requests.post(url, params=params)
+
+
 @app.route("/checkin", methods=["POST"])
 # TODO: eventually add CORS/similar checking to protect endpoints
 def checkin():
@@ -152,7 +165,7 @@ def checkin():
     )
 
     '''
-    
+
     '''
 
     # Print the message SID to confirm that the message was sent
@@ -162,14 +175,8 @@ def checkin():
     return jsonify("success"), 200
 
 
-
-
-
-
 @app.route("/reply", methods=["POST"])
 def reply():
-
-
     # Get patient and chatbot message info
     patient_number = request.values.get('From', None)
     chatbot_number = request.values.get("To", None)
@@ -201,7 +208,7 @@ def reply():
         today, patient_number, chatbot_number)
 
     # Search for records that match the formula
-    #conversation = airtable_conversations.search(formula=query)
+    # conversation = airtable_conversations.search(formula=query)
 
     conversation = airtable_conversations.search('Date', today, formula=query)
 
@@ -217,7 +224,8 @@ def reply():
     messages = list()
     messages.append(
         {"role": "system",
-         "content": "Pretend your a nurse that is asking questions before a routine checkup. Your goal is to acquire as much information as possible about how the patient is feeling about{0}. The patients condition is {0}. No medical advice. Only asking good questions. No explaining why. Only ask questions".format(condition)})
+         "content": "You cannot give medical advice. No suggestions. Only questions. The patients condition is {0}. No medical advice. Only ask questions".format(
+             condition)})
     for message in sorted_convo:
         if message["fields"]["Sender"] == patient_number:
             messages.append(
@@ -226,24 +234,32 @@ def reply():
             messages.append(
                 {"role": "assistant", "content": message["fields"]["Text"]})
 
+    print("this is the message")
     print(messages)
+    response_text = ""
     # Generate next doctor question
+
+
     question = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=messages,
-        max_tokens=50,
-        stop="."
-    )
-    response_text = question.choices[0].message['content']
+        )
 
+    print("updated question____________")
+
+    response_text = question.choices[0].message['content']
     print(response_text)
+    print("This is the question")
+    print("This is the response text")
+    print(response_text)
+
 
     # Send text
     message = twilio.messages.create(
-        to=patient_number,
-        from_=chatbot_number,
-        body=response_text
-    )
+            to=patient_number,
+            from_=chatbot_number,
+            body=response_text
+        )
 
     # Get the current time
     today = date.today().isoformat()
@@ -251,13 +267,15 @@ def reply():
 
     # Add outgoing text to airtable
     airtable_conversations.insert({
-        'Date': today,
-        'Time': current_time,
-        'Sender': chatbot_number,
-        'Receiver': patient_number,
-        'Text': response_text})
-
+            'Date': today,
+            'Time': current_time,
+            'Sender': chatbot_number,
+            'Receiver': patient_number,
+            'Text': response_text
+        })
     return jsonify("success"), 200
+
+
 
 
 
